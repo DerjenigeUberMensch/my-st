@@ -21,11 +21,11 @@
 #include "win.h"
 
 #if   defined(__linux)
- #include <pty.h>
+#include <pty.h>
 #elif defined(__OpenBSD__) || defined(__NetBSD__) || defined(__APPLE__)
- #include <util.h>
+#include <util.h>
 #elif defined(__FreeBSD__) || defined(__DragonFly__)
- #include <libutil.h>
+#include <libutil.h>
 #endif
 
 /* Arbitrary sizes */
@@ -44,112 +44,112 @@
 #define ISDELIM(u)		(u && wcschr(worddelimiters, u))
 
 enum term_mode {
-	MODE_WRAP        = 1 << 0,
-	MODE_INSERT      = 1 << 1,
-	MODE_ALTSCREEN   = 1 << 2,
-	MODE_CRLF        = 1 << 3,
-	MODE_ECHO        = 1 << 4,
-	MODE_PRINT       = 1 << 5,
-	MODE_UTF8        = 1 << 6,
+    MODE_WRAP        = 1 << 0,
+    MODE_INSERT      = 1 << 1,
+    MODE_ALTSCREEN   = 1 << 2,
+    MODE_CRLF        = 1 << 3,
+    MODE_ECHO        = 1 << 4,
+    MODE_PRINT       = 1 << 5,
+    MODE_UTF8        = 1 << 6,
 };
 
 enum cursor_movement {
-	CURSOR_SAVE,
-	CURSOR_LOAD
+    CURSOR_SAVE,
+    CURSOR_LOAD
 };
 
 enum cursor_state {
-	CURSOR_DEFAULT  = 0,
-	CURSOR_WRAPNEXT = 1,
-	CURSOR_ORIGIN   = 2
+    CURSOR_DEFAULT  = 0,
+    CURSOR_WRAPNEXT = 1,
+    CURSOR_ORIGIN   = 2
 };
 
 enum charset {
-	CS_GRAPHIC0,
-	CS_GRAPHIC1,
-	CS_UK,
-	CS_USA,
-	CS_MULTI,
-	CS_GER,
-	CS_FIN
+    CS_GRAPHIC0,
+    CS_GRAPHIC1,
+    CS_UK,
+    CS_USA,
+    CS_MULTI,
+    CS_GER,
+    CS_FIN
 };
 
 enum escape_state {
-	ESC_START      = 1,
-	ESC_CSI        = 2,
-	ESC_STR        = 4,  /* DCS, OSC, PM, APC */
-	ESC_ALTCHARSET = 8,
-	ESC_STR_END    = 16, /* a final string was encountered */
-	ESC_TEST       = 32, /* Enter in test mode */
-	ESC_UTF8       = 64,
+    ESC_START      = 1,
+    ESC_CSI        = 2,
+    ESC_STR        = 4,  /* DCS, OSC, PM, APC */
+    ESC_ALTCHARSET = 8,
+    ESC_STR_END    = 16, /* a final string was encountered */
+    ESC_TEST       = 32, /* Enter in test mode */
+    ESC_UTF8       = 64,
 };
 
 typedef struct {
-	Glyph attr; /* current char attributes */
-	int x;
-	int y;
-	char state;
+    Glyph attr; /* current char attributes */
+    int x;
+    int y;
+    char state;
 } TCursor;
 
 typedef struct {
-	int mode;
-	int type;
-	int snap;
-	/*
-	 * Selection variables:
-	 * nb – normalized coordinates of the beginning of the selection
-	 * ne – normalized coordinates of the end of the selection
-	 * ob – original coordinates of the beginning of the selection
-	 * oe – original coordinates of the end of the selection
-	 */
-	struct {
-		int x, y;
-	} nb, ne, ob, oe;
+    int mode;
+    int type;
+    int snap;
+    /*
+     * Selection variables:
+     * nb – normalized coordinates of the beginning of the selection
+     * ne – normalized coordinates of the end of the selection
+     * ob – original coordinates of the beginning of the selection
+     * oe – original coordinates of the end of the selection
+    */
+    struct {
+        int x, y;
+    } nb, ne, ob, oe;
 
-	int alt;
+    int alt;
 } Selection;
 
 /* Internal representation of the screen */
 typedef struct {
-	int row;      /* nb row */
-	int col;      /* nb col */
-	Line *line;   /* screen */
-	Line *alt;    /* alternate screen */
-	int *dirty;   /* dirtyness of lines */
-	TCursor c;    /* cursor */
-	int ocx;      /* old cursor col */
-	int ocy;      /* old cursor row */
-	int top;      /* top    scroll limit */
-	int bot;      /* bottom scroll limit */
-	int mode;     /* terminal mode flags */
-	int esc;      /* escape state flags */
-	char trantbl[4]; /* charset table translation */
-	int charset;  /* current charset */
-	int icharset; /* selected charset for sequence */
-	int *tabs;
-	Rune lastc;   /* last printed char outside of sequence, 0 if control */
+    int row;      /* nb row */
+    int col;      /* nb col */
+    Line *line;   /* screen */
+    Line *alt;    /* alternate screen */
+    int *dirty;   /* dirtyness of lines */
+    TCursor c;    /* cursor */
+    int ocx;      /* old cursor col */
+    int ocy;      /* old cursor row */
+    int top;      /* top    scroll limit */
+    int bot;      /* bottom scroll limit */
+    int mode;     /* terminal mode flags */
+    int esc;      /* escape state flags */
+    char trantbl[4]; /* charset table translation */
+    int charset;  /* current charset */
+    int icharset; /* selected charset for sequence */
+    int *tabs;
+    Rune lastc;   /* last printed char outside of sequence, 0 if control */
 } Term;
 
 /* CSI Escape sequence structs */
 /* ESC '[' [[ [<priv>] <arg> [;]] <mode> [<mode>]] */
 typedef struct {
-	char buf[ESC_BUF_SIZ]; /* raw string */
-	size_t len;            /* raw string length */
-	char priv;
-	int arg[ESC_ARG_SIZ];
-	int narg;              /* nb of args */
-	char mode[2];
+    char buf[ESC_BUF_SIZ]; /* raw string */
+    size_t len;            /* raw string length */
+    char priv;
+    int arg[ESC_ARG_SIZ];
+    int narg;              /* nb of args */
+    char mode[2];
 } CSIEscape;
 
 /* STR Escape sequence structs */
 /* ESC type [[ [<priv>] <arg> [;]] <mode>] ESC '\' */
 typedef struct {
-	char type;             /* ESC type ... */
-	char *buf;             /* allocated raw string */
-	size_t siz;            /* allocation size */
-	size_t len;            /* raw string length */
-	char *args[STR_ARG_SIZ];
-	int narg;              /* nb of args */
+    char type;             /* ESC type ... */
+    char *buf;             /* allocated raw string */
+    size_t siz;            /* allocation size */
+    size_t len;            /* raw string length */
+    char *args[STR_ARG_SIZ];
+    int narg;              /* nb of args */
 } STREscape;
 
 static void execsh(char *, char **);
@@ -235,117 +235,117 @@ static const Rune utfmax[UTF_SIZ + 1] = {0x10FFFF, 0x7F, 0x7FF, 0xFFFF, 0x10FFFF
 ssize_t
 xwrite(int fd, const char *s, size_t len)
 {
-	size_t aux = len;
-	ssize_t r;
+    size_t aux = len;
+    ssize_t r;
 
-	while (len > 0) {
-		r = write(fd, s, len);
-		if (r < 0)
-			return r;
-		len -= r;
-		s += r;
-	}
+    while (len > 0) {
+        r = write(fd, s, len);
+        if (r < 0)
+        return r;
+        len -= r;
+        s += r;
+    }
 
-	return aux;
+    return aux;
 }
 
 void *
 xmalloc(size_t len)
 {
-	void *p;
+    void *p;
 
-	if (!(p = malloc(len)))
-		die("malloc: %s\n", strerror(errno));
+    if (!(p = malloc(len)))
+        die("malloc: %s\n", strerror(errno));
 
-	return p;
+    return p;
 }
 
 void *
 xrealloc(void *p, size_t len)
 {
-	if ((p = realloc(p, len)) == NULL)
-		die("realloc: %s\n", strerror(errno));
+    if ((p = realloc(p, len)) == NULL)
+        die("realloc: %s\n", strerror(errno));
 
-	return p;
+    return p;
 }
 
 char *
 xstrdup(const char *s)
 {
-	char *p;
+    char *p;
 
-	if ((p = strdup(s)) == NULL)
-		die("strdup: %s\n", strerror(errno));
+    if ((p = strdup(s)) == NULL)
+        die("strdup: %s\n", strerror(errno));
 
-	return p;
+    return p;
 }
 
 size_t
 utf8decode(const char *c, Rune *u, size_t clen)
 {
-	size_t i, j, len, type;
-	Rune udecoded;
+    size_t i, j, len, type;
+    Rune udecoded;
 
-	*u = UTF_INVALID;
-	if (!clen)
-		return 0;
-	udecoded = utf8decodebyte(c[0], &len);
-	if (!BETWEEN(len, 1, UTF_SIZ))
-		return 1;
-	for (i = 1, j = 1; i < clen && j < len; ++i, ++j) {
-		udecoded = (udecoded << 6) | utf8decodebyte(c[i], &type);
-		if (type != 0)
-			return j;
-	}
-	if (j < len)
-		return 0;
-	*u = udecoded;
-	utf8validate(u, len);
+    *u = UTF_INVALID;
+    if (!clen)
+        return 0;
+    udecoded = utf8decodebyte(c[0], &len);
+    if (!BETWEEN(len, 1, UTF_SIZ))
+        return 1;
+    for (i = 1, j = 1; i < clen && j < len; ++i, ++j) {
+        udecoded = (udecoded << 6) | utf8decodebyte(c[i], &type);
+        if (type != 0)
+        return j;
+    }
+    if (j < len)
+        return 0;
+    *u = udecoded;
+    utf8validate(u, len);
 
-	return len;
+    return len;
 }
 
 Rune
 utf8decodebyte(char c, size_t *i)
 {
-	for (*i = 0; *i < LEN(utfmask); ++(*i))
-		if (((uchar)c & utfmask[*i]) == utfbyte[*i])
-			return (uchar)c & ~utfmask[*i];
+    for (*i = 0; *i < LEN(utfmask); ++(*i))
+        if (((uchar)c & utfmask[*i]) == utfbyte[*i])
+            return (uchar)c & ~utfmask[*i];
 
-	return 0;
+    return 0;
 }
 
 size_t
 utf8encode(Rune u, char *c)
 {
-	size_t len, i;
+    size_t len, i;
 
-	len = utf8validate(&u, 0);
-	if (len > UTF_SIZ)
-		return 0;
+    len = utf8validate(&u, 0);
+    if (len > UTF_SIZ)
+        return 0;
 
-	for (i = len - 1; i != 0; --i) {
-		c[i] = utf8encodebyte(u, 0);
-		u >>= 6;
-	}
-	c[0] = utf8encodebyte(u, len);
+    for (i = len - 1; i != 0; --i) {
+        c[i] = utf8encodebyte(u, 0);
+        u >>= 6;
+    }
+    c[0] = utf8encodebyte(u, len);
 
-	return len;
+    return len;
 }
 
 char
 utf8encodebyte(Rune u, size_t i)
 {
-	return utfbyte[i] | (u & ~utfmask[i]);
+    return utfbyte[i] | (u & ~utfmask[i]);
 }
 
 size_t
 utf8validate(Rune *u, size_t i)
 {
-	if (!BETWEEN(*u, utfmin[i], utfmax[i]) || BETWEEN(*u, 0xD800, 0xDFFF))
-		*u = UTF_INVALID;
-	for (i = 1; *u > utfmax[i]; ++i)
-		;
+    if (!BETWEEN(*u, utfmin[i], utfmax[i]) || BETWEEN(*u, 0xD800, 0xDFFF))
+        *u = UTF_INVALID;
+    for (i = 1; *u > utfmax[i]; ++i)
+        ;
 
 	return i;
 }
@@ -2571,7 +2571,6 @@ tresize(int col, int row)
 		free(term.line[i]);
 		free(term.alt[i]);
 	}
-
 	/* resize to new height */
 	term.line = xrealloc(term.line, row * sizeof(Line));
 	term.alt  = xrealloc(term.alt,  row * sizeof(Line));
@@ -2583,7 +2582,6 @@ tresize(int col, int row)
 		term.line[i] = xrealloc(term.line[i], col * sizeof(Glyph));
 		term.alt[i]  = xrealloc(term.alt[i],  col * sizeof(Glyph));
 	}
-
 	/* allocate any new rows */
 	for (/* i = minrow */; i < row; i++) {
 		term.line[i] = xmalloc(col * sizeof(Glyph));
