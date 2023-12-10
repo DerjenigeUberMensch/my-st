@@ -2638,6 +2638,7 @@ drawregion(int x1, int y1, int x2, int y2)
 	}
 }
 
+/* here */
 void
 draw(void)
 {
@@ -2653,13 +2654,12 @@ draw(void)
 		term.ocx--;
 	if (term.line[term.c.y][cx].mode & ATTR_WDUMMY)
 		cx--;
-
-	drawregion(0, 0, term.col, term.row);
-	xdrawcursor(cx, term.c.y, term.line[term.c.y][cx],
-			term.ocx, term.ocy, term.line[term.ocy][term.ocx]);
-	term.ocx = cx;
-	term.ocy = term.c.y;
-	xfinishdraw();
+    drawregion(0, 0, term.col, term.row);
+        xdrawcursor(cx, term.c.y, term.line[term.c.y][cx],
+                term.ocx, term.ocy, term.line[term.ocy][term.ocx]);
+    term.ocx = cx;
+    term.ocy = term.c.y;
+    xfinishdraw();
 	if (ocx != term.ocx || ocy != term.ocy)
 		xximspot(term.ocx, term.ocy);
 }

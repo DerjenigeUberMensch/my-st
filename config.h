@@ -5,9 +5,16 @@
  *
  * font: see http://freedesktop.org/software/fontconfig/fontconfig-user.html
  */
-// Bm437_IGS_VGA_9x16.otb
-static char *font = "monospace:pixelsize=24:dpi=96.0:antialias=false:autohint=true";// 
-static int borderpx = 0;
+static char *font = "Monospace:pixelsize=15:antialias=false:autohint=true";
+static int borderpx = 2;
+/*
+ * background image
+ * expects farbfeld format
+ * pseudo transparency fixes coordinates to the screen origin
+ */
+
+static const char *bgfile = "~/home/ram/SystemFiles/Wallpapers/st.ff"; /* see https://tools.suckless.org/farbfeld/ */
+static const int pseudotransparency = 1;
 
 /*
  * What program is execed by st depends of these precedence rules:
@@ -54,25 +61,25 @@ int allowwindowops = 0;
  * near minlatency, but it waits longer for slow updates to avoid partial draw.
  * low minlatency will tear/flicker more, as it can "detect" idle too early.
  */
-static double minlatency = 1; //8
-static double maxlatency = 1; //33
+static double minlatency = 1;
+static double maxlatency = 1;
 
 /*
  * blinking timeout (set to 0 to disable blinking) for the terminal blinking
  * attribute.
  */
-static unsigned int blinktimeout = 250;
+static unsigned int blinktimeout = 200;
 
 /*
  * thickness of underline and bar cursors
  */
-static unsigned int cursorthickness = 5;
+static unsigned int cursorthickness = 3;
 
 /*
  * bell volume. It must be a value between -100 and 100. Use 0 for disabling
  * it
  */
-static int bellvolume = 50;
+static int bellvolume = 1;
 
 /* default TERM value */
 char *termname = "st-256color";
@@ -92,7 +99,7 @@ char *termname = "st-256color";
  *
  *	stty tabs
  */
-unsigned int tabspaces = 8;
+unsigned int tabspaces = 4;
 
 /* Terminal colors (16 first used in escape sequence) */
 static const char *colorname[] = {
@@ -116,7 +123,7 @@ static const char *colorname[] = {
 	"cyan",
 	"white",
 
-	[255] = 0,
+    [255] = 0,
 
 	/* more colors can be added after 255 to use with DefaultXX */
 	"#cccccc",
@@ -149,7 +156,7 @@ static unsigned int defaultrcs = 257;
  * 7: blinking st cursor
  * 8: steady st cursor
  */
-static unsigned int cursorstyle= 3;
+static unsigned int cursorstyle = 3;
 static Rune stcursor = 0x2603; /* snowman ("â˜ƒ") */
 
 /*
