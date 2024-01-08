@@ -2124,7 +2124,8 @@ run(void)
     ttyfd = ttynew(opt_line, shell, opt_io, opt_cmd);
     cresize(w, h);
 
-    for (timeout = -1, drawing = 0, lastblink = (struct timespec){0};;) {
+    for (timeout = -1, drawing = 0, lastblink = (struct timespec){0};;) 
+    {
         FD_ZERO(&rfd);
         FD_SET(ttyfd, &rfd);
         FD_SET(xfd, &rfd);
@@ -2147,7 +2148,8 @@ run(void)
             ttyread();
 
         xev = 0;
-        while (XPending(xw.dpy)) {
+        while (XPending(xw.dpy)) 
+        {
             xev = 1;
             XNextEvent(xw.dpy, &ev);
             if (XFilterEvent(&ev, None))
@@ -2184,15 +2186,17 @@ run(void)
 
         /* idle detected or maxlatency exhausted -> draw */
         timeout = -1;
-        if (blinktimeout && (cursorblinks || tattrset(ATTR_BLINK))){
+        if (blinktimeout && (cursorblinks || tattrset(ATTR_BLINK)))
+        {
             timeout = blinktimeout - TIMEDIFF(now, lastblink);
-            if (timeout <= 0) {
+            if (timeout <= 0) 
+            {
                 if (-timeout > blinktimeout) /* start visible */
                     win.mode |= MODE_BLINK;
                 win.mode ^= MODE_BLINK;
                 tsetdirtattr(ATTR_BLINK);
                 lastblink = now;
-                timeout = blinktimeout;
+                if(timeout <= 0) timeout = blinktimeout;
             }
         }
 

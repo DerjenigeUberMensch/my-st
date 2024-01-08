@@ -5,7 +5,8 @@
  *
  * font: see http://freedesktop.org/software/fontconfig/fontconfig-user.html
  */
-static char *font = "Monospace:pixelsize=15:antialias=false:autohint=true";
+/* fonts /usr/share/fonts/ */
+static char *font = "HackNerdFont-BoldItalic.ttf:pixelsize=14:antialias=false:autohint=true";
 static int borderpx = 2;
 /*
  * background image
@@ -73,7 +74,7 @@ static unsigned int blinktimeout = 200;
 /*
  * thickness of underline and bar cursors
  */
-static unsigned int cursorthickness = 3;
+static unsigned int cursorthickness = 8;
 
 /*
  * bell volume. It must be a value between -100 and 100. Use 0 for disabling
@@ -217,6 +218,8 @@ static Shortcut shortcuts[] = {
 	{ TERMMOD,              XK_Y,           selpaste,       {.i =  0} },
 	{ ShiftMask,            XK_Insert,      selpaste,       {.i =  0} },
 	{ TERMMOD,              XK_Num_Lock,    numlock,        {.i =  0} },
+    { ShiftMask,            XK_Page_Up,     kscrollup,      {.i = -40} },
+	{ ShiftMask,            XK_Page_Down,   kscrolldown,    {.i = -40} },
 };
 
 /*
